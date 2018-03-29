@@ -11,40 +11,50 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.net.URL;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class Controller implements Initializable{
+public class Controller implements Initializable {
 
-    @FXML private TableView<Student> table;
+    @FXML
+    private TableView<Student> table;
 
-    @FXML private TableColumn<Student, Integer> id;
+    @FXML
+    private TableColumn<Student, Integer> id;
 
-    @FXML private TableColumn<Student, String> name;
+    @FXML
+    private TableColumn<Student, String> name;
 
-    @FXML private TableColumn<Student, String> surname;
+    @FXML
+    private TableColumn<Student, String> surname;
 
-    @FXML private TableColumn<Student, String> phone;
+    @FXML
+    private TableColumn<Student, String> phone;
 
-    @FXML private TableColumn<Student, String> email;
+    @FXML
+    private TableColumn<Student, String> email;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
         //createDummyData();
 
+
+
         //sumapinamas
         id.setCellValueFactory(new PropertyValueFactory<Student, Integer>("id"));
         name.setCellValueFactory(new PropertyValueFactory<Student, String>("name"));
-        surname.setCellValueFactory(new PropertyValueFactory<Student,String>("surname"));
-        phone.setCellValueFactory(new PropertyValueFactory<Student,String>("phone"));
-        email.setCellValueFactory(new PropertyValueFactory<Student,String>("email"));
+        surname.setCellValueFactory(new PropertyValueFactory<Student, String>("surname"));
+        phone.setCellValueFactory(new PropertyValueFactory<Student, String>("phone"));
+        email.setCellValueFactory(new PropertyValueFactory<Student, String>("email"));
 
         Connection connection = MyDatabaseConnectionHandler.getConnection();
 
+        pullDataFromDb(connection);
         if (connection != null) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setContentText("Prisijungete sekmingai prie DB");
@@ -56,11 +66,22 @@ public class Controller implements Initializable{
         }
     }
 
-    private void pullDataFromDb (Connection connection) {
-        if(connection != null){
+    //istraukti duomenis is duomenu bazes
+    private void pullDataFromDb(Connection connection) {
+        if (connection != null) {
             try {
                 Statement st = connection.createStatement();
 
+                ResultSet resultSet = st.executeQuery("SELECT * FROM students"); //komandos sql
+
+                List<Student> students = new ArrayList<>();
+
+                while (resultSet.next()) {
+                    students.add(new Student(resultSet.getInt("id"), resultSet.getString("name"), resultSet.getString("surname"),
+                            resultSet.getString("phone"), resultSet.getString("email")));
+                }
+
+                table.setItems(FXCollections.observableList(students));
 
             } catch (SQLException e) {
                 e.printStackTrace();
